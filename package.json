@@ -2,9 +2,11 @@
   "name": "backend",
   "version": "1.0.0",
   "main": "index.js",
-  "scripts": {
-    "dev": "vercel dev"
-  },
+ "scripts": {
+  "start": "node index.js",
+  "dev": "nodemon index.js"
+},
+
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -12,8 +14,7 @@
   "dependencies": {
     "dotenv": "^17.0.1",
     "express": "^5.1.0",
-    "mongoose": "^8.16.1",
-    "serverless-http": "^3.2.0"
+    "mongoose": "^8.16.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
