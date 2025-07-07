@@ -20,11 +20,29 @@ const dotenv = require('dotenv')
 const connectDB = require('../config/db')
 const userRoutes = require('../routes/userRoutes');
 const express = require("express");
+const cors = require("cors");
 dotenv.config();
 connectDB();
 const app = express();
 app.use(express.json());
+const allowedOrigins = [
+  "http://localhost:5173",              // your local Vite dev server
+  "https://your-frontend.vercel.app"    // optional: your deployed frontend
+];
 
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // allow requests with no origin like mobile apps or curl
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true, // if you use cookies or auth
+  })
+);
 app.get("/", (req, res) => res.send("Congratulation 🎉🎉! Our Express server is Running on Vercel"));
 app.use('/api/users', userRoutes);
 app.listen(3000, () => console.log("Server ready on port 3000."));
