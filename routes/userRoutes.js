@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
-const users_header =  require('../constants/headers')
+const users_header = require('../constants/headers')
 
 // GET all users
 router.get('/', async (req, res) => {
@@ -10,11 +10,27 @@ router.get('/', async (req, res) => {
     const page = parseInt(req?.query?.page) || 1;
     const limit = parseInt(req?.query?.limit) || 10;
     const startWith = (page - 1) * limit;
-    const totalCount = await User.countDocuments();
-    const users = await User.find({}, { updatedAt: 0, createdAt: 0, __v: 0 })
+   
+    const search = req.query.search?.trim();
+    const query = {};
+    if (search) {
+        query.$or = [
+            { name: { $regex: search, $options: 'i' } },
+            { email: { $regex: search, $options: 'i' } },
+        ];
+    }
+    // 🧪 Extract filters from req.query (exclude page, limit, search)
+    const filterKeysToIgnore = ['page', 'limit', 'search'];
+    Object.entries(req.query).forEach(([key, value]) => {
+        if (!filterKeysToIgnore.includes(key) && value) {
+            query[key] = value;
+        }
+    });
+     const totalCount = await User.countDocuments(query);
+    const users = await User.find(query, { updatedAt: 0, createdAt: 0, __v: 0 })
         .skip(startWith)
         .limit(limit)
-        .sort({ posteddate: 1 })
+
         .lean();
     res.status(200).send({
         columns,
