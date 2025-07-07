@@ -12,6 +12,7 @@ router.get('/', async (req, res) => {
     const startWith = (page - 1) * limit;
    
     const search = req.query.search?.trim();
+  
     const query = {};
     if (search) {
         query.$or = [
@@ -26,6 +27,7 @@ router.get('/', async (req, res) => {
             query[key] = value;
         }
     });
+      console.log('search', query)
      const totalCount = await User.countDocuments(query);
     const users = await User.find(query, { updatedAt: 0, createdAt: 0, __v: 0 })
         .skip(startWith)
