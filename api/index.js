@@ -23,6 +23,7 @@ const express = require("express");
 dotenv.config();
 connectDB();
 const app = express();
+app.use(express.json());
 
 app.get("/", (req, res) => res.send("Congratulation 🎉🎉! Our Express server is Running on Vercel"));
 app.use('/api/users', userRoutes);
