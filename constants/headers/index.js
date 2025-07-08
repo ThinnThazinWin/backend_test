@@ -1,15 +1,26 @@
 exports.users_header = [
-  {
-    header: "_id",
-    accessorKey: "_id",
+    {
+        header: "_id",
+        accessorKey: "_id",
+    },
+    {
+        header: "Name",
+        accessorKey: "name",
+        filter: true,
+        options: [
+            {
+                "label": "alice",
+                "value": "Alice"
+            },
+            {
+                "label": "bob",
+                "value": "bob"
+            }]
+
   },
-  {
-    header: "Name",
-    accessorKey: "name",
-  },
-  {
-    header: "Email",
-    accessorKey: "email",
-  },
+    {
+        header: "Email",
+        accessorKey: "email",
+    },
 
 ];
