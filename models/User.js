@@ -17,6 +17,22 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    disabled: {
+      type: Boolean,
+      
+       default: false,
+    },
+    phone: {
+      type: String,
+    },
+    team: {
+      type: String,
+
+    },
+    position: {
+      type: String,
+      default: 'unknown'
+    }
 }, { timestamps: true });
 userSchema.pre("save", function (next) {
   const user = this;

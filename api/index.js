@@ -26,7 +26,8 @@ connectDB();
 const app = express();
 app.use(express.json());
 const allowedOrigins = [
-  "http://localhost:5173",              // your local Vite dev server
+  "http://localhost:5173", 
+  "http://localhost:5174",             // your local Vite dev server
   "https://login-theta-mauve.vercel.app" ,   // optional: your deployed frontend
   "https://backend-test-gilt-eta.vercel.app"
 ];

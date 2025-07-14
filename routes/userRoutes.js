@@ -38,7 +38,7 @@ router.get('/', permission_auth, async (req, res) => {
   });
   console.log('search', query)
   const totalCount = await User.countDocuments(query);
-  const users = await User.find(query, { updatedAt: 0, createdAt: 0, __v: 0 })
+  const users = await User.find(query, { password: 0 }, { updatedAt: 0, createdAt: 0, __v: 0 })
     .skip(startWith)
     .limit(limit)
 
