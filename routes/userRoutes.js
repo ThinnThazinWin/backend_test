@@ -87,6 +87,7 @@ router.post('/login', async (req, res, next) => {
         path: "/",
         expires: expirationDate, // 15 min
         sameSite: "Strict",
+        secure: true
       });
 
       //      res.cookie("accessToken", tokens.accessToken, {
