@@ -87,7 +87,9 @@ router.post('/login', async (req, res, next) => {
         path: "/",
         expires: expirationDate, // 15 min
         sameSite: "Strict",
-        secure: true
+        // secure: true
+
+        
       });
 
       //      res.cookie("accessToken", tokens.accessToken, {
@@ -181,7 +183,7 @@ router.get('/swap', async (req, res) => {
     // we better delete this token to protect futhur suspicious activity
     // or to logout simply
 
-    res.clearCookie("Bearer");
+    // res.clearCookie("Bearer");
 
     return res.status(401).send({ message: errorCode });
   }
