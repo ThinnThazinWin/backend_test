@@ -52,14 +52,149 @@ router.get('/', permission_auth, async (req, res) => {
 
 // POST create new user
 router.post('/', permission_auth, async (req, res) => {
+  const {email} = req.body
+     const duplicateAdminList = await User.aggregate([
+      {
+        $match: {
+          $or: [
+            
+            {
+              email,
+            },
+          ],
+        },
+      },
+    ]);
+
+    if (duplicateAdminList && duplicateAdminList.length >= 1) {
+      return res
+        .status(409)
+        .send({ message: "Duplidate  Email Found" });
+    }
   const newUser = new User(req.body);
   const savedUser = await newUser.save();
   res.json(savedUser);
 });
 
+//Update user detail
+router.put('/', permission_auth, async (req, res) => {
+  try {
+    const { _id, name, email, password, phone, team, position, disabled } = req.body;
 
+    const updateObject = {};
 
-//////////////////////////////////
+    if (name) updateObject.name = name;
+    if (email) updateObject.email = email;
+    if (password) updateObject.password = password;
+    if (phone) updateObject.phone = phone;
+    if (team) updateObject.team = team;
+    if (position) updateObject.position = position;
+    if (disabled==true) updateObject.disabled = true;
+    else if(disabled===false) updateObject.disabled = false;
+
+    const existingAdmin = await User.findById(_id).lean();
+
+    if (!existingAdmin) {
+      return res.status(409).send({ message: "Cannot find user to update" });
+    }
+
+    // const sameUsernames = await User.find({
+      
+    //   email,
+    // }).lean();
+
+    // have to check if length >2 to ensure database is not corrupted by someone who has access to database
+
+    // if (sameUsernames.length >= 1 && sameUsernames[0]._id.toString() !== _id) {
+    //   return res.status(409).send({ message: "Duplicate Email" });
+    // }
+
+    const updateAdministratorsResponse = await User.updateOne(
+      { _id },
+      { $set: updateObject }
+    );
+
+    if (
+      updateAdministratorsResponse.modifiedCount === 1 ||
+      updateAdministratorsResponse.matchedCount === 1
+    ) {
+      return res.status(200).send({
+        message: "Successfully Updated Admin",
+      });
+    } else {
+      return res.status(404).send({
+        message: "Something went wrong",
+      });
+    }
+  } catch (err) {
+    console.log('err', err)
+    return res.status(500).send({ message: "Something went wrong" });
+  }
+});
+
+// router.put('/disable/:id', permission_auth, async (req, res) => {
+//   try {
+//     const { _id } = req.params;
+
+//     const existingAdmin = await User.findById(_id).lean();
+
+//     if (!existingAdmin) {
+//       return res.status(404).send({ message: "Cannot find user to update" });
+//     }
+
+//     const updateAdministratorsResponse = await User.updateOne(
+//       { _id },
+//       { $set: { disabled: true } }
+//     );
+
+//     if (
+//       updateAdministratorsResponse.modifiedCount === 1 ||
+//       updateAdministratorsResponse.matchedCount === 1
+//     ) {
+//       return res.status(200).send({
+//         message: `Account for ${existingAdmin.fullname} Will Logout In ${process.env.DEV_ACCESS_EXPIRE}`,
+//       });
+//     }
+//     return res.status(500).send({
+//       message: "Something went wrong",
+//     });
+//   } catch (err) {
+//     console.log('err', err)
+//     return res.status(500).send({ message: "Something went wrong" });
+//   }
+// });
+
+// router.put('/enable/:id', permission_auth, async (req, res) => {
+//   try {
+//     const { _id } = req.params;
+
+//     const existingAdmin = await User.findById(_id).lean();
+
+//     if (!existingAdmin) {
+//       return res.status(404).send({ message: "Cannot find user to update" });
+//     }
+
+//     const updateAdministratorsResponse = await User.updateOne(
+//       { _id },
+//       { $set: { disabled: false } }
+//     );
+
+//     if (
+//       updateAdministratorsResponse.modifiedCount === 1 ||
+//       updateAdministratorsResponse.matchedCount === 1
+//     ) {
+//       return res.status(200).send({
+//         message: `Successfully Enabled Account for ${existingAdmin.name}`,
+//       });
+//     }
+//     return res.status(500).send({
+//       message: "Something went wrong",
+//     });
+//   } catch (err) {
+//      console.log('err', err)
+//     return res.status(500).send({ message: "Something went wrong" });
+//   }
+// });
 
 
 router.post('/login', async (req, res, next) => {
@@ -68,6 +203,7 @@ router.post('/login', async (req, res, next) => {
     const { email, password } = req.body;
     const administrator = await User.findOne({
       email,
+      disabled: false
     });
     if (!administrator) {
       return res.status(404).send({ message: "User not exits" });
@@ -86,10 +222,10 @@ router.post('/login', async (req, res, next) => {
         httpOnly: true,
         path: "/",
         expires: expirationDate, // 15 min
-        sameSite: "None",
-        secure: true
+        sameSite: "None",//for cross-site production
+        secure: true//for cross-site production
 
-        
+
       });
 
       //      res.cookie("accessToken", tokens.accessToken, {
@@ -113,7 +249,6 @@ router.post('/login', async (req, res, next) => {
     res.status(500).send({ message: "Something went wrong" });
   }
 });
-
 
 
 router.get('/swap', async (req, res) => {
@@ -153,7 +288,7 @@ router.get('/swap', async (req, res) => {
 
       });
 
-     
+
       // The refresh jwt secret being exposed or User been diabled
       if (!administrator)
         return res.status(401).send({ message: "Cannot Refresh Right Now" });
@@ -162,7 +297,7 @@ router.get('/swap', async (req, res) => {
 
       return res.status(200).send({
         message: "Successfully Swap Token",
-        accessToken:  accessToken ,
+        accessToken: accessToken,
       });
     }
     return res.status(401).send({ message: "Unauthoirzed Request" });
@@ -191,11 +326,11 @@ router.get('/swap', async (req, res) => {
 
 router.post('/logout', async (req, res) => {
   try {
- 
+
     if (!req.headers.cookie)
       return res.status(404).send({ message: "Information not enough" });
 
-      const getBearerTokenFromCookie = (cookieHeader) => {
+    const getBearerTokenFromCookie = (cookieHeader) => {
       if (!cookieHeader) return null;
 
       const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
