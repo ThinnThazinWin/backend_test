@@ -87,7 +87,7 @@ router.post('/login', async (req, res, next) => {
         path: "/",
         expires: expirationDate, // 15 min
         sameSite: "None",
-        // secure: true
+        secure: true
 
         
       });
