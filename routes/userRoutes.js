@@ -52,25 +52,25 @@ router.get('/', permission_auth, async (req, res) => {
 
 // POST create new user
 router.post('/', permission_auth, async (req, res) => {
-  const {email} = req.body
-     const duplicateAdminList = await User.aggregate([
-      {
-        $match: {
-          $or: [
-            
-            {
-              email,
-            },
-          ],
-        },
-      },
-    ]);
+  const { email } = req.body
+  const duplicateAdminList = await User.aggregate([
+    {
+      $match: {
+        $or: [
 
-    if (duplicateAdminList && duplicateAdminList.length >= 1) {
-      return res
-        .status(409)
-        .send({ message: "Duplidate  Email Found" });
-    }
+          {
+            email,
+          },
+        ],
+      },
+    },
+  ]);
+
+  if (duplicateAdminList && duplicateAdminList.length >= 1) {
+    return res
+      .status(409)
+      .send({ message: "Duplidate  Email Found" });
+  }
   const newUser = new User(req.body);
   const savedUser = await newUser.save();
   res.json(savedUser);
@@ -89,8 +89,8 @@ router.put('/', permission_auth, async (req, res) => {
     if (phone) updateObject.phone = phone;
     if (team) updateObject.team = team;
     if (position) updateObject.position = position;
-    if (disabled==true) updateObject.disabled = true;
-    else if(disabled===false) updateObject.disabled = false;
+    if (disabled == true) updateObject.disabled = true;
+    else if (disabled === false) updateObject.disabled = false;
 
     const existingAdmin = await User.findById(_id).lean();
 
@@ -99,7 +99,7 @@ router.put('/', permission_auth, async (req, res) => {
     }
 
     // const sameUsernames = await User.find({
-      
+
     //   email,
     // }).lean();
 
@@ -351,7 +351,14 @@ router.post('/logout', async (req, res) => {
     // this result only useful when you need to log activity
     // also act as a protected layer for malicious attack
 
-    res.clearCookie("Bearer", { path: "/" }); // always delete cookie first before checking jwt
+    // res.clearCookie("Bearer", { path: "/" }); // always delete cookie first before checking jwt
+    res.clearCookie("Bearer", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      path: "/",
+    });
+
 
     const verifyResult = jwt.verify(isRefreshExists, process.env.DEV_REFRESH_SECRET);
 
